@@ -138,3 +138,142 @@ body {
   color: var(--text-muted);
   text-align: center;
 }
+
+
+/* GAME BOARD / ARENA SCREEN*/
+
+.game-page .header {
+  margin-bottom: 1.2rem;
+}
+
+.subtitle-small {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+/* Layout: board + player bar */
+
+.game-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1000px;
+}
+
+/* Board */
+
+.board {
+  background: linear-gradient(145deg, #06092a, #151a4d);
+  border-radius: var(--radius);
+  border: 2px solid rgba(244, 208, 63, 0.4);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+  padding: 1.4rem 1rem;
+  width: 100%;
+}
+
+.board-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.board-header {
+  margin-bottom: 0.9rem;
+}
+
+.board-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+/* Category headers */
+
+.board-category {
+  background: rgba(3, 10, 50, 0.95);
+  border: 1px solid rgba(244, 208, 63, 0.6);
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.65rem 0.3rem;
+}
+
+/* Question tiles */
+
+.board-tile {
+  background: radial-gradient(circle at top, #1e2ea8, #050a32);
+  border: 1px solid rgba(244, 208, 63, 0.5);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 0.8rem 0.3rem;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.board-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+  filter: brightness(1.1);
+}
+
+.board-tile:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Used/disabled tile state (for when a question is taken) */
+.board-tile.used,
+.board-tile:disabled {
+  background: rgba(6, 9, 42, 0.65);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: default;
+  box-shadow: none;
+}
+
+/* Player bar */
+
+.player-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem;
+  width: 100%;
+}
+
+.player-card {
+  min-width: 150px;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius);
+  background: rgba(6, 9, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  text-align: center;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
+}
+
+.player-name {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.2rem;
+}
+
+.player-score {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Highlight current player */
+
+.player-active {
+  border-color: rgba(244, 208, 63, 0.9);
+  box-shadow: 0 0 18px rgba(244, 208, 63, 0.7);
+}
