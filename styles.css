@@ -143,9 +143,10 @@ body {
   width: 100%;
   height: 12px;
   background: #ffffff;
-  border-radius: #353535;
+  border-radius: 6px;
   overflow: hidden;
-  box-shadow: inset 0 0 6px #ff6b6b;
+  margin-bottom: 20px;
+  box-shadow: inset 0 0 6px #820dd5;
 }
 
 .timer-bar {

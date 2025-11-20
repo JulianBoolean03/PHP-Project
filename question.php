@@ -1,9 +1,10 @@
 <?php
 
+session_start();
+
 $timer = 30; //Set timer to 30 seconds. May be changed to be longer/shorter if needed
 
-//Start timer when question shows up on screen
-session_start();
+//Start timer when a question has been chosen & store timer once
 if (!isset($_SESSION['question_start'])) {
     $_SESSION['question_start'] = time();
 }
@@ -15,12 +16,20 @@ $time_remain = max(0, $timer - $time_elapse);
 //Automatically return to game board when timer ends
 if ($time_remain <= 0) {
     unset($_SESSION['question_start']); //Resets timer for next question
-    header("Location: board.php"); //replace with name of game page if needed
+    header("Location: game.php");
     exit();
-} //Put else for when time_remain is greater than 0
+}
 
-//Get question from array
+//Question done
+if (isset($_POST['exit_question'])) {
+    unset($_SESSION['question_start']);
+    header("Location: game.php");
+    exit();
+}
+
+//Get question from array. To be filled later
 $question = "Sample Question";
+$username = $_SESSION['username'] ?? 'Player1';
 ?>
 
 <!DOCTYPE html>
@@ -30,27 +39,37 @@ $question = "Sample Question";
     <title>Jeopardy - Question</title>
     <link rel="stylesheet" href="styles.css">
 
-    <!-- Auto-refresh for PHP time-checking -->
-     <meta http-equiv="refresh" content="1">
+    <!-- Auto-refresh for updating PHP timer -->
+    <meta http-equiv="refresh" content="<?php echo $time_remain ?>">
+
+    <!-- Animation length for timer based on remaining time -->
+     <style>
+        .timer-bar {
+            animation-duration: <?php echo $time_remain; ?>s;
+        }
+     </style>
 </head>
 <body>
     <div class = "page-wrapper">
-        <header class = "header">
-            <h1 class = "title">Jeopardy Game Show</h1>
-            <p class = "subtitle" >Game Time!</p>
+        <header class="header">
+            <h1 class="title">JEOPARDY GAME SHOW</h1>
+            <p class="subtitle">Battle Arena · Question</p>
+            <p class="subtitle-small">Logged in as <?php echo htmlspecialchars($username); ?></p>
         </header>
 
-    <main class = "card">
-        <h2 class= "card-title">Question:</h2>
-        <!-- Section for question since there will be different questions leaving this blank for now -->
+    <main class="card">
+        <h2 class="card-title" style:"text-align: center;"><?php echo htmlspecialchars($question) ?></h2>
 
         <!-- Timer -->
          <div class = "timer-wrapper">
             <div class = "timer-bar"></div>
          </div>
-
-         <p><?php echo htmlspecialchars($question); ?></p>
     </main>
+
+    <!-- Button for when a user answers correctly/no one gets it correct -->
+    <form method="post">
+        <button class="btn-primary" name="exit_question">Exit</button>
+    </form>
 
     <footer class = "footer">
         <p>Julian Robinson &amp; Amanda Nguyen</p>
