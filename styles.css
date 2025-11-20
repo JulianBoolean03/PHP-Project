@@ -139,6 +139,27 @@ body {
   text-align: center;
 }
 
+.timer-wrapper {
+  width: 100%;
+  height: 12px;
+  background: #ffffff;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: inset 0 0 6px #820dd5;
+}
+
+.timer-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #f4d03f);
+  width: 100%;
+  animation: countdown linear forwards;
+}
+
+@keyframes countdown {
+  from {width: 100%;}
+  to {width: 0%;}
+}
 
 /* GAME BOARD / ARENA SCREEN*/
 
