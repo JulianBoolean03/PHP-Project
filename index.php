@@ -1,57 +1,55 @@
-
 <?php
+session_start();
 
-$errorMessage = $_GET['error'] ?? '';
+// AUTO-LOGIN from cookie: if we already know this user, go straight to lobby
+if (!isset($_SESSION['username']) && !empty($_COOKIE['username'])) {
+  $_SESSION['username'] = $_COOKIE['username'];
+  header('Location: lobby.php');
+  exit();
+}
+
+$currentUser = $_SESSION['username'] ?? ($_COOKIE['username'] ?? '');
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Jeopardy – Create Account</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>Jeopardy – Home</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-<div class="page-wrapper">
+  <div class="page-wrapper">
     <header class="header">
-        <h1 class="title">Jeopardy Game Show</h1>
-        <p class="subtitle">Create your account!.</p>
+      <h1 class="title">JEOPARDY GAME SHOW</h1>
+      <p class="subtitle">Multiplayer Trivia Battle Arena</p>
+      <?php if ($currentUser): ?>
+        <p class="subtitle-small">
+          You’re currently signed in as
+          <strong><?php echo htmlspecialchars($currentUser); ?></strong>.
+        </p>
+      <?php endif; ?>
     </header>
 
     <main class="card">
-        <h2 class="card-title">Create Your Username</h2>
-        <p class="card-text">
-            Pick a unique username. This will be used to track your score
-            during the game.
-        </p>
+      <h2 class="card-title">Welcome!</h2>
+      <p class="card-text">
+        Create a profile, join the lobby, and battle your friends in a
+        Jeopardy-style game board with categories and timed questions.
+      </p>
 
-        <?php if (!empty($errorMessage)): ?>
-            <p class="error-message">
-                <?php echo htmlspecialchars($errorMessage); ?>
-            </p>
+      <div style="display:flex; flex-direction:column; gap:0.5rem;">
+        <a href="profile.php"
+          class="btn-primary"
+          style="text-align:center; text-decoration:none; display:block;">
+          Create / Change Username
+        </a>
+
+        <?php if ($currentUser): ?>
+          <a href="lobby.php"
+            class="btn-primary"
+            style="text-align:center; text-decoration:none; display:block;">
+            Rejoin Lobby
+          </a>
         <?php endif; ?>
-
-        <!-- First page: create account -->
-        <form action="lobby.php" method="post" class="profile-form">
-            <label for="username" class="label">Username</label>
-            <input
-                type="text"
-                id="username"
-                name="username"
-                class="input"
-                maxlength="20"
-                required
-                placeholder="e.g. Player1"
-            >
-
-            <button type="submit" class="btn-primary">
-                Create Account &amp; Join Lobby
-            </button>
-        </form>
-    </main>
-
-    <footer class="footer">
-        <p>Julian Robinson &amp; Amanda Nguyen</p>
-    </footer>
-</div>
-</body>
-</html>
