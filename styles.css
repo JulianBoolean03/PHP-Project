@@ -72,6 +72,20 @@ body {
   margin-bottom: 1.3rem;
 }
 
+.card-question {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 1.3rem;
+  text-align: center;
+}
+
+.card-winner {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 1.3rem;
+  text-align: center;
+}
+
 .profile-form {
   display: flex;
   flex-direction: column;

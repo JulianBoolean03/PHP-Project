@@ -58,7 +58,7 @@ $username = $_SESSION['username'] ?? 'Player1';
         </header>
 
     <main class="card">
-        <h2 class="card-title" style:"text-align: center;"><?php echo htmlspecialchars($question) ?></h2>
+        <h2 class="card-question"><?php echo htmlspecialchars($question) ?></h2>
 
         <!-- Timer -->
          <div class = "timer-wrapper">
