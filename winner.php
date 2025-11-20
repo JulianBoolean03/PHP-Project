@@ -2,12 +2,30 @@
 
 session_start();
 
+/*
+$_SESSION['players'] = [
+    'Player1' => 600
+]
+Array for number of players & their scores (to be updated)
+*/
+
+//If players don't exist
+$players = $_SESSION['players'] ?? ['Player1' => 0];
+
+//Determine winner
+$winner = array_keys($players, max($players))[0];
+
 $username = $_SESSION['username'] ?? 'Player1';
 $score = ''; //User score
 
 //User wants to play again
-if (isset($POST['$play-again'])) {
+if (isset($_POST['$play-again'])) {
+    unset($_SESSION['players']);
+    unset($_SESSION['board']);
+    unset($_SESSION['current_player']);
+
     header("Location: lobby.php");
+    exit();
 }
 ?>
 
@@ -27,8 +45,19 @@ if (isset($POST['$play-again'])) {
     </header>
 
     <main class="card">
-        <h2 class="card-winner">Winner: <?php echo htmlspecialchars($username) ?> </h2>
-        <p>Score: </p>
+        <h2 class="card-winner">Winner: <?php echo htmlentities($winner) ?> </h2>
+        <p class="score-final">Final Score: <strong><?php echo $players[$winner]; ?></strong></p>
+
+        <!-- Border to separate winner and player scores -->
+        <hr class="border">
+
+        <h3 class="player-scores">Player Results:</h3>
+
+        <?php foreach ($players as $name => $score): ?>
+            <p class="display-scores">
+                <?php echo htmlentities($name); ?> - <strong><?php echo htmlentities($score); ?></strong>
+            </p>
+        <?php endforeach; ?>
     </main>
 
     <!-- Button to Play Again that leads to a new game -->

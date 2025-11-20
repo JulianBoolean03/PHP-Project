@@ -86,6 +86,27 @@ body {
   text-align: center;
 }
 
+.score-final {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.player-scores {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.display-scores {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.border {
+  border:1px solid black;
+  margin: 1rem 0;
+}
+
 .profile-form {
   display: flex;
   flex-direction: column;
