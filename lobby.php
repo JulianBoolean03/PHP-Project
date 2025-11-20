@@ -31,7 +31,7 @@ if (!isset($_SESSION['Userdata']['Username'])) {
 }
 
 //Retrieve current username
-$current_user = $_SESSION['UserData']['USername'];
+$current_user = $_SESSION['UserData']['Username'];
 ?>
 
 <!DOCTYPE html>
