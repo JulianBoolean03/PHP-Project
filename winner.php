@@ -37,37 +37,45 @@ if (isset($_POST['$play-again'])) {
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="page-wrapper">
-    <header class="header">
-        <h1 class="title">JEOPARDY GAME SHOW</h1>
-        <p class="subtitle">Game Over!</p>
-        <p class="subtitle-small">Logged in as <?php echo htmlentities($username); ?></p>
-    </header>
 
-    <main class="card">
-        <h2 class="card-winner">Winner: <?php echo htmlentities($winner) ?> </h2>
-        <p class="score-final">Final Score: <strong><?php echo $players[$winner]; ?></strong></p>
+<!-- PHP code for confetti -->
+<div class="confetti-wrapper">
+    <?php for ($i = 0; $i < 150; $i++): ?>
+        <div class="confetti"></div>
+    <?php endfor; ?>
 
-        <!-- Border to separate winner and player scores -->
-        <hr class="border">
+    <div class="page-wrapper">
+        <header class="header">
+            <h1 class="title">JEOPARDY GAME SHOW</h1>
+            <p class="subtitle">Game Over!</p>
+            <p class="subtitle-small">Logged in as <?php echo htmlentities($username); ?></p>
+        </header>
 
-        <h3 class="player-scores">Player Results:</h3>
+        <main class="card">
+            <h2 class="card-winner">Winner: <?php echo htmlentities($winner) ?> </h2>
+            <p class="score-final">Final Score: <strong>$<?php echo $players[$winner]; ?></strong></p>
 
-        <?php foreach ($players as $name => $score): ?>
-            <p class="display-scores">
-                <?php echo htmlentities($name); ?> - <strong><?php echo htmlentities($score); ?></strong>
-            </p>
-        <?php endforeach; ?>
-    </main>
+            <!-- Border to separate winner and player scores -->
+            <hr class="border">
 
-    <!-- Button to Play Again that leads to a new game -->
-     <form method="post">
-        <button class="btn-primary" name="play-again">Play Again</button>
-     </form>
+            <h3 class="player-scores">Player Results:</h3>
 
-    <footer class="footer">
-        <p>Julian Robinson &amp; Amanda Nguyen</p>
-    </footer>
+            <?php foreach ($players as $name => $score): ?>
+                <p class="display-scores">
+                    <?php echo htmlentities($name); ?> - <strong>$<?php echo htmlentities($score); ?></strong>
+                </p>
+            <?php endforeach; ?>
+        </main>
+
+        <!-- Button to Play Again that leads to a new game -->
+        <form method="post">
+           <button class="btn-primary" name="play-again">Play Again</button>
+        </form>
+
+        <footer class="footer">
+            <p>Julian Robinson &amp; Amanda Nguyen</p>
+        </footer>
+    </div>
 </div>
 </body>
 </html>
