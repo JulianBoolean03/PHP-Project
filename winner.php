@@ -18,12 +18,11 @@ $winner = array_keys($players, max($players))[0];
 $username = $_SESSION['username'] ?? 'Player1';
 $score = ''; //User score
 
-//User wants to play again
+//User wants to play again (to be updated)
 if (isset($_POST['$play-again'])) {
     unset($_SESSION['players']);
     unset($_SESSION['board']);
     unset($_SESSION['current_player']);
-
     header("Location: lobby.php");
     exit();
 }

@@ -54,12 +54,12 @@ body {
 .confetti:nth-child(3n+2) {background: #ffbf00;}
 .confetti:nth-child(3n+3) {background: #267047;}
 
-.confetti:nth-child(odd) {width: 6px; height: 2px;}
-.confetti:nth-child(even) {width: 10px; height: 4px;}
+.confetti:nth-child(odd) {width: 25px; height: 20px;}
+.confetti:nth-child(even) {width: 25px; height: 20px;}
 
 /* Position confetti */
 .confetti:nth-child(1n) {left: 5%; animation-duration: 4s; animation-delay: 0s; transform: rotate(20deg);}
-.confetti:nth-child(2n) {left: 20%; animation-duration: 5s; animation-delay: .2s; transform: rotate(60deg);}
+.confetti:nth-child(2n) {left: 20%; animation-duration: 5s; animation-delay: .5s; transform: rotate(60deg);}
 .confetti:nth-child(3n) {left: 35%; animation-duration: 4.5s; animation-delay: .8s; transform: rotate(110deg);}
 .confetti:nth-child(4n) {left: 55%; animation-duration: 6s; animation-delay: 1.1s; transform: rotate(180deg);}
 .confetti:nth-child(5n) {left: 75%; animation-duration: 5.3s; animation-delay: 1.4s; transform: rotate(260deg);}

@@ -2,6 +2,68 @@
 <?php
 session_start();
 $username = $_SESSION['username'] ?? 'Player1';
+
+//Default all questions to false (not answered)
+if (!isset($_SESSION['board'])) {
+    $_SESSION['board'] = [
+        'Anime' => [100 => false, 200 => false, 300 => false, 400 => false],
+        'Games' => [100 => false, 200 => false, 300 => false, 400 => false],
+        'Science' => [100 => false, 200 => false, 300 => false, 400 => false],
+        'History' => [100 => false, 200 => false, 300 => false, 400 => false],
+        'Random' => [100 => false, 200 => false, 300 => false, 400 => false]
+    ];
+}
+
+//Initialize players' score to 0
+if (!isset($_SESSION['players'])) {
+    $_SESSION['players'] = [
+        'Player1' => 0,
+        'Player2' => 0,
+        'Player3' => 0,
+        'Player4' => 0
+    ];
+}
+
+//Track active player
+if (!isset($_SESSION['turn'])) {
+    $_SESSION['turn'] = 0; //Player1 starts first
+}
+
+$players = array_keys($_SESSION['players']);
+$current_player = $players[$_SESSION['turn']];
+
+//Update board when a question is answered
+if (isset($_GET['category']) && isset($_GET['question'])) {
+    $category = $_GET['category'];
+    $questionValue = (int)$_GET['question'];
+
+    //Mark as answered & update board if not already
+    if ($_SESSION['board'][$category][$questionValue] === false) {
+        $_SESSION['board'][$category][$questionValue] == true;
+
+        //Add score (to be updated if someone that is not current player answers correctly)
+        $_SESSION['players'][$current_player] += $questionValue;
+    }
+    //Move to next player/player who answers correctly (latter part to be updated)
+    $_SESSION['turn'] = ($_SESSION['turn'] + 1) % count($players);
+}
+
+//Track answered questions
+function all_questions_answered() {
+    foreach($_SESSION['board'] as $category => $questions) {
+        foreach($questions as $question => $used) {
+            if (!$used) { //If at least one question has not been used yet
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+if (all_questions_answered()) {
+    header("Location: winner.php");
+    exit();
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,58 +91,27 @@ $username = $_SESSION['username'] ?? 'Player1';
                 <div class="board-cell board-category">Random</div>
             </div>
 
-            <!-- Row 1 -->
-            <div class="board-row">
-                <button class="board-cell board-tile">$100</button>
-                <button class="board-cell board-tile">$100</button>
-                <button class="board-cell board-tile">$100</button>
-                <button class="board-cell board-tile">$100</button>
-                <button class="board-cell board-tile">$100</button>
-            </div>
-            <!-- Row 2 -->
-            <div class="board-row">
-                <button class="board-cell board-tile">$200</button>
-                <button class="board-cell board-tile">$200</button>
-                <button class="board-cell board-tile">$200</button>
-                <button class="board-cell board-tile">$200</button>
-                <button class="board-cell board-tile">$200</button>
-            </div>
-            <!-- Row 3 -->
-            <div class="board-row">
-                <button class="board-cell board-tile">$300</button>
-                <button class="board-cell board-tile">$300</button>
-                <button class="board-cell board-tile">$300</button>
-                <button class="board-cell board-tile">$300</button>
-                <button class="board-cell board-tile">$300</button>
-            </div>
-            <!-- Row 4 -->
-            <div class="board-row">
-                <button class="board-cell board-tile">$400</button>
-                <button class="board-cell board-tile">$400</button>
-                <button class="board-cell board-tile">$400</button>
-                <button class="board-cell board-tile">$400</button>
-                <button class="board-cell board-tile">$400</button>
-            </div>
+            <!-- Replaced PHP code for used questions -->
+             <?php for ($row = 100; $row <= 400; $row += 100): ?>
+                <div class="board-row">
+                    <?php foreach ($_SESSION['board'] as $category => $questions): ?>
+                        <?php $used = $questions[$row]; ?>
+                        <button class="board-cell board-tile <?php echo $used ? 'used' : ''; ?>" <?php echo $used ? 'disabled' : ''; ?>>
+                            $<?php echo $row; ?>
+                        </button>
+                    <?php endforeach ?>
+                </div>
+             <?php endfor ?>
         </section>
 
         <!-- Player bar -->
         <section class="player-bar">
-            <div class="player-card player-active">
-                <div class="player-name">Player 1</div>
-                <div class="player-score">$1200</div>
-            </div>
-            <div class="player-card">
-                <div class="player-name">Player 2</div>
-                <div class="player-score">$800</div>
-            </div>
-            <div class="player-card">
-                <div class="player-name">Player 3</div>
-                <div class="player-score">$400</div>
-            </div>
-            <div class="player-card">
-                <div class="player-name">Player 4</div>
-                <div class="player-score">$0</div>
-            </div>
+            <?php foreach ($_SESSION['players'] as $player => $score): ?>
+                <div class="player-card <?php echo ($player === $username) ? 'player-active' : ''; ?>">
+                    <div class="player-name"><?php echo htmlspecialchars($player); ?></div>
+                    <div class="player-score"><?php echo $score; ?></div>
+                </div>
+            <?php endforeach ?>
         </section>
     </main>
 
