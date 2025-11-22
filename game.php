@@ -40,9 +40,6 @@ if (isset($_GET['category']) && isset($_GET['question'])) {
     //Mark as answered & update board if not already
     if ($_SESSION['board'][$category][$questionValue] === false) {
         $_SESSION['board'][$category][$questionValue] == true;
-
-        //Add score (to be updated if someone that is not current player answers correctly)
-        $_SESSION['players'][$current_player] += $questionValue;
     }
     //Move to next player/player who answers correctly (latter part to be updated)
     $_SESSION['turn'] = ($_SESSION['turn'] + 1) % count($players);
@@ -60,6 +57,7 @@ function all_questions_answered() {
     return true;
 }
 
+//Navigate to winner screen after all questions have been answered
 if (all_questions_answered()) {
     header("Location: winner.php");
     exit();

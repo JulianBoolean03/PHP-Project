@@ -4,6 +4,7 @@ session_start();
 
 $timer = 30; //Set timer to 30 seconds. May be changed to be longer/shorter if needed
 
+
 //Start timer when a question has been chosen & store timer once
 if (!isset($_SESSION['question_start'])) {
     $_SESSION['question_start'] = time();
@@ -14,22 +15,46 @@ $time_elapse = time() - $_SESSION['question_start'];
 $time_remain = max(0, $timer - $time_elapse);
 
 //Automatically return to game board when timer ends
-if ($time_remain <= 0) {
+if ($time_remain == 0) {
     unset($_SESSION['question_start']); //Resets timer for next question
-    header("Location: game.php");
+    header("Location: game.php?timeout=1");
     exit();
 }
 
 //Question done
 if (isset($_POST['exit_question'])) {
     unset($_SESSION['question_start']);
-    header("Location: game.php");
+    header("Location: game.php?manual_exit=1");
     exit();
 }
 
 //Get question from array. To be filled later
 $question = "Sample Question";
+//Display correct answer (will be updated later)
+$correct_answer = "Sample Answer";
+$user_answer = isset($_POST['answer']) ? trim($_POST['answer']) : '';
+
+//Check if user answered correctly
+$is_correct = strtolower($user_answer) === strtolower($correct_answer);
+//Check if user answered the question
+$is_answered = !empty($user_answer);
 $username = $_SESSION['username'] ?? 'Player1';
+
+//If user answers correctly, update score
+if ($is_answered) {
+    $questionValue = (int)$_GET['question'];
+    if ($is_correct) {
+        $_SESSION['players'][$username] += $questionValue;
+    } else {
+        $_SESSION['players'][$username] -= $questionValue;
+    }
+
+    //Mark question as answered in game board
+    $category = $_GET['category'];
+    $_SESSION['board'][$category][$questionValue] = true;
+    header("Location: game.php");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -61,14 +86,15 @@ $username = $_SESSION['username'] ?? 'Player1';
         <h2 class="card-question"><?php echo htmlspecialchars($question) ?></h2>
       
         <!-- Timer -->
-         <div class = "timer-wrapper">
+        <div class = "timer-wrapper">
             <div class = "timer-bar"></div>
-         </div>
+        </div>
     </main>
 
-    <!-- Button for when a user answers correctly/no one gets it correct -->
+    <!-- Form for submitting answer and navigates back to game.php while adding/subtracting score depending on answer -->
     <form method="post">
-        <button class="btn-primary" name="exit_question">Exit</button>
+        <input type="text" name="answer" placeholder="Answer">
+        <button class="btn-primary" name="exit_question">Submit Answer</button>
     </form>
 
     <footer class = "footer">
