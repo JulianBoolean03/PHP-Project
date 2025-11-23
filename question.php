@@ -27,14 +27,40 @@ if (!isset($_SESSION['game_active']) || !$_SESSION['game_active']) {
   exit();
 }
 
+// Check if game was ended
+$gameStatusFile = __DIR__ . '/game_status.txt';
+if (file_exists($gameStatusFile) && trim(file_get_contents($gameStatusFile)) === 'ended') {
+  header('Location: winner.php');
+  exit();
+}
+
 $timer_duration = 30; // 30 seconds per question
 $feedback_message = '';
 $show_answer_form = true;
+
+// Load shared game state to get latest board status
+$gameStateFile = __DIR__ . '/shared_game_state.txt';
+if (file_exists($gameStateFile)) {
+  $sharedState = json_decode(file_get_contents($gameStateFile), true);
+  if ($sharedState && isset($sharedState['board'])) {
+    $_SESSION['board'] = $sharedState['board'];
+    $_SESSION['players'] = $sharedState['players'];
+    $_SESSION['player_list'] = $sharedState['player_list'];
+    $_SESSION['current_player_index'] = $sharedState['current_player_index'];
+  }
+}
 
 // Initialize question if POSTed from game.php
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['category']) && isset($_POST['value'])) {
   $category = $_POST['category'];
   $value = (int)$_POST['value'];
+  
+  // Check if question is already used (another player may have answered it)
+  if (isset($_SESSION['board'][$category][$value]) && $_SESSION['board'][$category][$value] === true) {
+    // Question already answered, return to game board
+    header('Location: game.php');
+    exit();
+  }
   
   // Store current question in session
   $_SESSION['current_question'] = [

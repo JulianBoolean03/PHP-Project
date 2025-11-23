@@ -81,8 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_game'])) {
   <meta charset="UTF-8">
   <title>Jeopardy - Lobby</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- Auto-refresh every 2 seconds to check for game start and new players -->
-  <meta http-equiv="refresh" content="2">
+  <!-- Auto-refresh every 5 seconds to check for game start and new players -->
+  <meta http-equiv="refresh" content="5">
 </head>
 
 <body class="<?php echo $body_class; ?>">
@@ -96,6 +96,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_game'])) {
       <h2 class="card-title">Lobby</h2>
       <p class="card-text">
         Once at least two players have joined the lobby, you can start the game.
+      </p>
+      <p class="card-text" style="font-size:0.85rem; color:var(--text-muted);">
+        Page auto-refreshes every 5 seconds. Press F5 to refresh manually.
       </p>
 
       <?php if (!empty($errorMessage)): ?>

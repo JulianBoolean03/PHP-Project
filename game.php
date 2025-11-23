@@ -65,12 +65,26 @@ if (!isset($_SESSION['game_active']) || !$_SESSION['game_active']) {
 
 // Handle End Game button
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['end_game'])) {
+  // Set game status to ended so all players redirect to winner
+  $gameStatusFile = __DIR__ . '/game_status.txt';
+  file_put_contents($gameStatusFile, 'ended', LOCK_EX);
+  
+  header('Location: winner.php');
+  exit();
+}
+
+// Check if game was ended by another player
+$gameStatusFile = __DIR__ . '/game_status.txt';
+if (file_exists($gameStatusFile) && trim(file_get_contents($gameStatusFile)) === 'ended') {
   header('Location: winner.php');
   exit();
 }
 
 // Check if all questions have been answered
 if (all_questions_answered()) {
+  // Mark game as ended
+  file_put_contents($gameStatusFile, 'ended', LOCK_EX);
+  
   header('Location: winner.php');
   exit();
 }
@@ -99,8 +113,8 @@ $categories = array_keys($board);
     <meta charset="UTF-8">
     <title>Jeopardy - Game Board</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Auto-refresh every 3 seconds to see updates from other players -->
-    <meta http-equiv="refresh" content="3">
+    <!-- Auto-refresh every 8 seconds to see updates from other players -->
+    <meta http-equiv="refresh" content="8">
 </head>
 <body class="<?php echo $body_class; ?>">
 <div class="page-wrapper game-page">
@@ -149,6 +163,7 @@ $categories = array_keys($board);
         <!-- Current player indicator -->
         <section class="current-turn">
             <p><strong>Current Turn:</strong> <?php echo htmlspecialchars($current_player); ?></p>
+            <p style="font-size:0.75rem; margin-top:0.3rem; opacity:0.8;">Auto-refresh: 8s | Press F5 to refresh now</p>
         </section>
 
         <!-- Player bar -->
