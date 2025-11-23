@@ -1,122 +1,183 @@
-
 <?php
 session_start();
-$username = $_SESSION['username'] ?? 'Player1';
+require_once __DIR__ . '/game_state.php';
 
-//Default all questions to false (not answered)
-if (!isset($_SESSION['board'])) {
-    $_SESSION['board'] = [
-        'Anime' => [100 => false, 200 => false, 300 => false, 400 => false],
-        'Games' => [100 => false, 200 => false, 300 => false, 400 => false],
-        'Science' => [100 => false, 200 => false, 300 => false, 400 => false],
-        'History' => [100 => false, 200 => false, 300 => false, 400 => false],
-        'Random' => [100 => false, 200 => false, 300 => false, 400 => false]
-    ];
+// Handle theme toggle
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_theme'])) {
+  $current_theme = $_COOKIE['theme'] ?? 'dark';
+  $new_theme = ($current_theme === 'dark') ? 'light' : 'dark';
+  setcookie('theme', $new_theme, time() + 60 * 60 * 24 * 365, '/');
+  $_COOKIE['theme'] = $new_theme;
 }
 
-//Initialize players' score to 0
-if (!isset($_SESSION['players'])) {
-    $_SESSION['players'] = [
-        'Player1' => 0,
-        'Player2' => 0,
-        'Player3' => 0,
-        'Player4' => 0
-    ];
+// Get current theme
+$theme = $_COOKIE['theme'] ?? 'dark';
+$body_class = ($theme === 'light') ? 'light-theme' : '';
+
+// Ensure user has a username
+$username = $_SESSION['username'] ?? null;
+if (!$username) {
+  header('Location: profile.php?error=' . urlencode('Please create a username first.'));
+  exit();
 }
 
-//Track active player
-if (!isset($_SESSION['turn'])) {
-    $_SESSION['turn'] = 0; //Player1 starts first
+// Load shared game state from file
+$gameStateFile = __DIR__ . '/shared_game_state.txt';
+if (file_exists($gameStateFile)) {
+  $sharedState = json_decode(file_get_contents($gameStateFile), true);
+  if ($sharedState) {
+    $_SESSION['board'] = $sharedState['board'];
+    $_SESSION['players'] = $sharedState['players'];
+    $_SESSION['player_list'] = $sharedState['player_list'];
+    $_SESSION['current_player_index'] = $sharedState['current_player_index'];
+  }
 }
 
-$players = array_keys($_SESSION['players']);
-$current_player = $players[$_SESSION['turn']];
-
-//Update board when a question is answered
-if (isset($_GET['category']) && isset($_GET['question'])) {
-    $category = $_GET['category'];
-    $questionValue = (int)$_GET['question'];
-
-    //Mark as answered & update board if not already
-    if ($_SESSION['board'][$category][$questionValue] === false) {
-        $_SESSION['board'][$category][$questionValue] == true;
-
-        //Add score (to be updated if someone that is not current player answers correctly)
-        $_SESSION['players'][$current_player] += $questionValue;
+// Ensure game has been initialized
+if (!isset($_SESSION['game_active']) || !$_SESSION['game_active']) {
+  // Check if game is active via shared file
+  $gameStatusFile = __DIR__ . '/game_status.txt';
+  if (file_exists($gameStatusFile) && trim(file_get_contents($gameStatusFile)) === 'active') {
+    // Game is active but this user's session doesn't know yet
+    // Load the shared state
+    if (file_exists($gameStateFile)) {
+      $sharedState = json_decode(file_get_contents($gameStateFile), true);
+      if ($sharedState) {
+        $_SESSION['board'] = $sharedState['board'];
+        $_SESSION['players'] = $sharedState['players'];
+        $_SESSION['player_list'] = $sharedState['player_list'];
+        $_SESSION['current_player_index'] = $sharedState['current_player_index'];
+        $_SESSION['game_active'] = true;
+        $_SESSION['question_bank'] = get_question_bank();
+      } else {
+        header('Location: lobby.php');
+        exit();
+      }
+    } else {
+      header('Location: lobby.php');
+      exit();
     }
-    //Move to next player/player who answers correctly (latter part to be updated)
-    $_SESSION['turn'] = ($_SESSION['turn'] + 1) % count($players);
-}
-
-//Track answered questions
-function all_questions_answered() {
-    foreach($_SESSION['board'] as $category => $questions) {
-        foreach($questions as $question => $used) {
-            if (!$used) { //If at least one question has not been used yet
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-if (all_questions_answered()) {
-    header("Location: winner.php");
+  } else {
+    header('Location: lobby.php');
     exit();
-    }
+  }
+}
+
+// Handle End Game button
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['end_game'])) {
+  header('Location: winner.php');
+  exit();
+}
+
+// Check if all questions have been answered
+if (all_questions_answered()) {
+  header('Location: winner.php');
+  exit();
+}
+
+// Get game state
+$board = $_SESSION['board'] ?? [];
+$players = $_SESSION['players'] ?? [];
+$player_list = $_SESSION['player_list'] ?? [];
+$current_player = get_current_player();
+
+// Count total questions answered
+$total_questions = 0;
+$answered_questions = 0;
+foreach ($board as $cat => $questions) {
+  foreach ($questions as $val => $used) {
+    $total_questions++;
+    if ($used) $answered_questions++;
+  }
+}
+
+$categories = array_keys($board);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Jeopardy – Game Board</title>
+    <title>Jeopardy - Game Board</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Auto-refresh every 3 seconds to see updates from other players -->
+    <meta http-equiv="refresh" content="3">
 </head>
-<body>
+<body class="<?php echo $body_class; ?>">
 <div class="page-wrapper game-page">
     <header class="header">
         <h1 class="title">JEOPARDY GAME SHOW</h1>
-        <p class="subtitle">Battle Arena · Round 1</p>
+        <p class="subtitle">Battle Arena - Question <?php echo $answered_questions; ?> / <?php echo $total_questions; ?></p>
         <p class="subtitle-small">Logged in as: <?php echo htmlspecialchars($username); ?></p>
     </header>
 
     <main class="game-layout">
         <!-- Jeopardy board -->
-        <section class="board">
+        <section class="board board-fade-in">
+            <!-- Category headers -->
             <div class="board-row board-header">
-                <div class="board-cell board-category">Anime</div>
-                <div class="board-cell board-category">Games</div>
-                <div class="board-cell board-category">Science</div>
-                <div class="board-cell board-category">History</div>
-                <div class="board-cell board-category">Random</div>
+                <?php foreach ($categories as $cat): ?>
+                    <div class="board-cell board-category"><?php echo htmlspecialchars($cat); ?></div>
+                <?php endforeach; ?>
             </div>
 
-            <!-- Replaced PHP code for used questions -->
-             <?php for ($row = 100; $row <= 400; $row += 100): ?>
+            <!-- Question tiles -->
+            <?php 
+            $values = [100, 200, 300, 400];
+            foreach ($values as $value): 
+            ?>
                 <div class="board-row">
-                    <?php foreach ($_SESSION['board'] as $category => $questions): ?>
-                        <?php $used = $questions[$row]; ?>
-                        <button class="board-cell board-tile <?php echo $used ? 'used' : ''; ?>" <?php echo $used ? 'disabled' : ''; ?>>
-                            $<?php echo $row; ?>
-                        </button>
-                    <?php endforeach ?>
+                    <?php foreach ($categories as $cat): ?>
+                        <?php $used = $board[$cat][$value] ?? false; ?>
+                        <?php if ($used): ?>
+                            <button class="board-cell board-tile used" disabled>
+                                $<?php echo $value; ?>
+                            </button>
+                        <?php else: ?>
+                            <form method="post" action="question.php" style="display:contents;">
+                                <input type="hidden" name="category" value="<?php echo htmlspecialchars($cat); ?>">
+                                <input type="hidden" name="value" value="<?php echo $value; ?>">
+                                <button type="submit" class="board-cell board-tile">
+                                    $<?php echo $value; ?>
+                                </button>
+                            </form>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
                 </div>
-             <?php endfor ?>
+            <?php endforeach; ?>
+        </section>
+
+        <!-- Current player indicator -->
+        <section class="current-turn">
+            <p><strong>Current Turn:</strong> <?php echo htmlspecialchars($current_player); ?></p>
         </section>
 
         <!-- Player bar -->
         <section class="player-bar">
-            <?php foreach ($_SESSION['players'] as $player => $score): ?>
-                <div class="player-card <?php echo ($player === $username) ? 'player-active' : ''; ?>">
+            <?php foreach ($player_list as $player): ?>
+                <div class="player-card <?php echo ($player === $current_player) ? 'player-active' : ''; ?>">
                     <div class="player-name"><?php echo htmlspecialchars($player); ?></div>
-                    <div class="player-score"><?php echo $score; ?></div>
+                    <div class="player-score">$<?php echo $players[$player] ?? 0; ?></div>
                 </div>
-            <?php endforeach ?>
+            <?php endforeach; ?>
+        </section>
+
+        <!-- End game button -->
+        <section style="text-align:center; margin-top:1rem;">
+            <form method="post">
+                <button type="submit" name="end_game" class="btn-secondary">
+                    End Game Early
+                </button>
+            </form>
         </section>
     </main>
 
     <footer class="footer">
-        <p>Julian Robinson &amp; Amanda Nguyen</p>
+      <form method="post" style="display:inline;">
+        <button type="submit" name="toggle_theme" class="btn-theme">
+          Switch to <?php echo ($theme === 'dark') ? 'Light' : 'Dark'; ?> Theme
+        </button>
+      </form>
+      <p style="margin-top:0.5rem;">Julian Robinson &amp; Amanda Nguyen</p>
     </footer>
 </div>
 </body>

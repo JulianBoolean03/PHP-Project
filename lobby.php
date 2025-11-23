@@ -1,5 +1,18 @@
 <?php
 session_start();
+require_once __DIR__ . '/game_state.php';
+
+// Handle theme toggle
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_theme'])) {
+  $current_theme = $_COOKIE['theme'] ?? 'dark';
+  $new_theme = ($current_theme === 'dark') ? 'light' : 'dark';
+  setcookie('theme', $new_theme, time() + 60 * 60 * 24 * 365, '/');
+  $_COOKIE['theme'] = $new_theme;
+}
+
+// Get current theme
+$theme = $_COOKIE['theme'] ?? 'dark';
+$body_class = ($theme === 'light') ? 'light-theme' : '';
 
 // Restore session from cookie if needed
 if (!isset($_SESSION['username']) && !empty($_COOKIE['username'])) {
@@ -15,7 +28,20 @@ if (!$current_user) {
 }
 
 $lobbyFile = __DIR__ . '/lobby.txt';
+$gameStatusFile = __DIR__ . '/game_status.txt';
 $lobbyUsers = [];
+
+// Check game status - if game started, redirect to game
+$gameStatus = 'waiting';
+if (file_exists($gameStatusFile)) {
+  $gameStatus = trim(file_get_contents($gameStatusFile));
+}
+
+if ($gameStatus === 'active') {
+  // Game has started, redirect to game page
+  header('Location: game.php');
+  exit();
+}
 
 // read lobby from file
 if (file_exists($lobbyFile)) {
@@ -36,7 +62,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_game'])) {
   if ($playerCount < 2) {
     $errorMessage = "Waiting for more players… (Currently $playerCount / 2)";
   } else {
-    $_SESSION['in_game'] = true;
+    // Set game status to active
+    file_put_contents($gameStatusFile, 'active', LOCK_EX);
+    
+    // Initialize game state with players from lobby
+    init_game($lobbyUsers);
+    
+    // Redirect to game
     header('Location: game.php');
     exit();
   }
@@ -49,9 +81,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_game'])) {
   <meta charset="UTF-8">
   <title>Jeopardy - Lobby</title>
   <link rel="stylesheet" href="styles.css">
+  <!-- Auto-refresh every 2 seconds to check for game start and new players -->
+  <meta http-equiv="refresh" content="2">
 </head>
 
-<body>
+<body class="<?php echo $body_class; ?>">
   <div class="page-wrapper">
     <header class="header">
       <h1 class="title">JEOPARDY GAME SHOW</h1>
@@ -85,7 +119,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_game'])) {
     </main>
 
     <footer class="footer">
-      <p>Julian Robinson &amp; Amanda Nguyen</p>
+      <form method="post" style="display:inline;">
+        <button type="submit" name="toggle_theme" class="btn-theme">
+          Switch to <?php echo ($theme === 'dark') ? 'Light' : 'Dark'; ?> Theme
+        </button>
+      </form>
+      <p style="margin-top:0.5rem;">Julian Robinson &amp; Amanda Nguyen</p>
     </footer>
   </div>
 </body>
